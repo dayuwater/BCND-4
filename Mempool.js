@@ -4,8 +4,14 @@ class Mempool{
         this.mempool = {};
         // {requestAddress: the remove function that calls when timeout}
         this.timeoutRequests = {};
+
+        // The dictionary to store all validated addresses
+        this.mempoolValid = {};
+
+        // Constants used by this class
         this.timeoutRequestWindowTime = 20*1000; // for test, use 20s in ms
         this.validationWindow = this.timeoutRequestWindowTime / 1000; // Convert to seconds
+        this.messageFormat = (address, timestamp) => `${address}:${timestamp}:starRegistry`;
     }
 
     /** Add a request validation to the mempool
@@ -14,10 +20,14 @@ class Mempool{
      * @returns {Object} This function itself returns the result of `requestObject` function below
      */
     addRequestValidation(address){
-        // Check if this address is already in the mempool
+        // Check if this address is already in the mempool or the valid mempool
         if(this.mempool[address]){
             // If it is in the mempool, return the object
             return this.requestObject(address, this.mempool[address], this.validationWindow);
+        }
+        if(this.mempoolValid[address]){
+            // If it is in the valid mempool, return the object
+            return this.mempoolValid[address];
         }
 
         // If the address is not in the mempool, add it
@@ -43,7 +53,7 @@ class Mempool{
         return {
             "walletAddress": address,
             "requestTimeStamp": timestamp,
-            "message": `${address}:${timestamp}:starRegistry`,
+            "message": this.messageFormat(address, timestamp),
             "validationWindow": validationWindow
         };
     }
@@ -56,6 +66,51 @@ class Mempool{
         delete this.mempool[address];
         delete this.timeoutRequests[address];
     }
+
+    /** Validate a request by address and signature using Bitcoin
+     * 
+     * @param {string} address The address to be validated
+     * @param {string} signature The signature
+     * @returns The valid request object, if not valid, return false
+     */
+    validateRequestByWallet(address, signature){
+        // Check if the address is still in the validation window
+        if(!this.mempool[address]){
+            return false;
+        }
+
+        // TODO: Validate that address by Bitcoin using the signature
+
+        // If the message is valid, generate the valid request
+        const timestamp = this.mempool[address];
+        const validRequest = {
+            "registerStar": true,
+            "status": {
+                "address": address,
+                "requestTimeStamp": timestamp,
+                "message": this.messageFormat(address, timestamp),
+                "validationWindow": this.validationWindow,
+                "messageSignature": true
+            }
+        }
+        // move the address into valid mempool, 
+        // remove that address from original mempool and timeout request
+        this.mempoolValid[address] = validRequest;
+        this.removeValidationRequest(address);
+        return validRequest;
+    }
+
+    /** Verify if the request validation exists and if it is valid.
+     * 
+     * @param {string} address The address to be validated
+     * @returns {boolean} True if it exists and validated, otherwise false
+     */
+    verifyAddressRequest(address){
+        return this.mempoolValid[address] ? true : false;
+
+    }
+
+
 }
 
 module.exports = Mempool;
