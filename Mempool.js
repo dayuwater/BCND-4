@@ -1,3 +1,5 @@
+const bitcoinMessage = require('bitcoinjs-message'); 
+
 class Mempool{
     constructor(){
         // {requestAddress: the timestamp requested}
@@ -79,17 +81,35 @@ class Mempool{
             return false;
         }
 
-        // TODO: Validate that address by Bitcoin using the signature
+        // Validate that address by Bitcoin using the signature
+        // Comment out this block of code for mocking test 
+
+        // Begin
+        // let valid = false;
+        // const message = this.messageFormat(address, this.mempool[address]);
+        // try{
+        //     valid = bitcoinMessage.verify(message, address, signature);
+        // }
+        // catch{
+            
+        // }
+
+        // // If the message is not validated, return false
+        // if(!valid){
+        //     return false;
+        // }
+        // End
 
         // If the message is valid, generate the valid request
         const timestamp = this.mempool[address];
+        const timeElapsed = Math.round((new Date().valueOf() - timestamp) / 1000);
         const validRequest = {
             "registerStar": true,
             "status": {
                 "address": address,
                 "requestTimeStamp": timestamp,
                 "message": this.messageFormat(address, timestamp),
-                "validationWindow": this.validationWindow,
+                "validationWindow": this.validationWindow - timeElapsed,
                 "messageSignature": true
             }
         }

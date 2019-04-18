@@ -81,3 +81,7 @@ typings/
 
 # Local chaindata
 /chaindata
+
+# Test files
+BlockchainTest.js
+MempoolTest.js
