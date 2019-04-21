@@ -11,7 +11,7 @@ class Mempool{
         this.mempoolValid = {};
 
         // Constants used by this class
-        this.timeoutRequestWindowTime = 20*1000; // for test, use 20s in ms
+        this.timeoutRequestWindowTime = 5*60*1000; // for test, use 5 minutes in ms
         this.validationWindow = this.timeoutRequestWindowTime / 1000; // Convert to seconds
         this.messageFormat = (address, timestamp) => `${address}:${timestamp}:starRegistry`;
     }
@@ -24,8 +24,10 @@ class Mempool{
     addRequestValidation(address){
         // Check if this address is already in the mempool or the valid mempool
         if(this.mempool[address]){
-            // If it is in the mempool, return the object
-            return this.requestObject(address, this.mempool[address], this.validationWindow);
+            // If it is in the mempool, return the object, recalculate the window time
+            const timestamp = this.mempool[address];
+            const timeElapsed = Math.round((new Date().valueOf() - timestamp) / 1000);
+            return this.requestObject(address, this.mempool[address], this.validationWindow - timeElapsed);
         }
         if(this.mempoolValid[address]){
             // If it is in the valid mempool, return the object
@@ -78,26 +80,33 @@ class Mempool{
     validateRequestByWallet(address, signature){
         // Check if the address is still in the validation window
         if(!this.mempool[address]){
-            return false;
+
+            // If this address is not validated before, return false
+            if(!this.mempoolValid[address]){
+                return false;
+            }
+
+            // If it is validated before, return the object there
+            return this.mempoolValid[address];
         }
 
         // Validate that address by Bitcoin using the signature
         // Comment out this block of code for mocking test 
 
         // Begin
-        // let valid = false;
-        // const message = this.messageFormat(address, this.mempool[address]);
-        // try{
-        //     valid = bitcoinMessage.verify(message, address, signature);
-        // }
-        // catch{
+        let valid = false;
+        const message = this.messageFormat(address, this.mempool[address]);
+        try{
+            valid = bitcoinMessage.verify(message, address, signature);
+        }
+        catch{
             
-        // }
+        }
 
-        // // If the message is not validated, return false
-        // if(!valid){
-        //     return false;
-        // }
+        // If the message is not validated, return false
+        if(!valid){
+            return false;
+        }
         // End
 
         // If the message is valid, generate the valid request

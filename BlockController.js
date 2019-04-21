@@ -5,12 +5,18 @@
 const SHA256 = require('crypto-js/sha256');
 const Blockchain = require('./Blockchain.js');
 const Block = require('./Block');
+const Mempool = require('./Mempool');
 
 // Constants used for error handing
 const NOT_INTEGER = {"error": "The block height must be a positive integer"};
 const NOT_FOUND = {"error": "That block does not exist"};
 const NOT_VALID_REQUEST = {"error": "Your request body must have a 'body' field, and there must not be empty."};
 const ADD_FAILED = {"error":"The block was not added successfully. Please try again later."}
+const NOT_VALID_SIGNATURE = {"error": "The signature provided is not valid for the provided address."}
+
+// error message generator
+not_valid_request = (field) => 
+    {return {"error": `Your request body must have a '${field}' field, and there must not be empty.`};}
 
 class BlockController{
     /**
@@ -21,9 +27,12 @@ class BlockController{
         // Initialize Express.js
         this.app = app;
 
-        // Initalize the blockchain at the construction stage of this controller
+        // Initialize the blockchain at the construction stage of this controller
         // The process of genesis block creation is already implemented in this class
         this.chain = new Blockchain();
+
+        // Initialize the mempool
+        this.mempool = new Mempool();
 
         // Register routes related to this class
         this.test();
@@ -32,51 +41,44 @@ class BlockController{
 
     
     test(){
-        this.app.get("/block/:height", async (req, res) => {
-            const height = +req.params.height;
+        this.app.post("/requestValidation", (req, res) => { 
+            const address = req.body.address;
+            if(!address){
+                res.status(400);
+                res.json(not_valid_request("address"));
+            }
 
-            // If the height is not a number, negative number, or not integer
-            if(height < 0 || height % 1 !== 0){
+            // Add the address into mempool and get the result from mempool
+            const requestObject = this.mempool.addRequestValidation(address);
+
+            res.json(requestObject);
+        });
+
+        this.app.post("/message-signature/validate", (req, res) => {
+            const address = req.body.address;
+            if(!address){
+                res.status(400);
+                res.json(not_valid_request("address"));
+            }
+            const signature = req.body.signature;
+            if(!signature){
+                res.status(400);
+                res.json(not_valid_request("signature"));
+            }
+
+            // Verify the signature
+            const validObject = this.mempool.validateRequestByWallet(address, signature);
+
+            // If the signature is rejected
+            if(!validObject){
                 res.status(403);
-                res.json(NOT_INTEGER);
+                res.json(NOT_VALID_SIGNATURE);
             }
-            else{
-                const block = await this.chain.getBlock(height);
-                // If that block is found
-                if(block)
-                    res.json(block);
 
-                // If that block cannot be found
-                else{
-                    res.status(404);
-                    res.json(NOT_FOUND);
-                }
-
-            }
+            res.json(validObject);
         })
 
-        this.app.post("/block", async (req, response) => {
-            const text = req.body.body;
-
-            if(!text){
-                response.status(403);
-                response.json(NOT_VALID_REQUEST);
-            }
-
-            // Add the block to the chain
-            const block = new Block(text);
-            const blockResponse = await this.chain.addBlock(block);
-            console.log(blockResponse);
-            if(blockResponse){
-                response.json(blockResponse);
-            }
-            else{
-                response.status(503);
-                response.json(ADD_FAILED);
-            }
-            
-
-        })
+        
 
     }
 }
