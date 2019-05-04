@@ -6,6 +6,7 @@ const SHA256 = require('crypto-js/sha256');
 const Blockchain = require('./Blockchain.js');
 const Block = require('./Block');
 const Mempool = require('./Mempool');
+const H2A = require('hex2ascii');
 
 // Constants used for error handing
 const NOT_INTEGER = {"error": "The block height must be a positive integer"};
@@ -106,6 +107,9 @@ class BlockController{
                 res.status(400);
                 res.json(NOT_VALID_STAR_INFO);
             }
+
+            // Encode the star story
+            star.story = Buffer.from(star.story).toString('hex');
 
             // Add the data to the blockchain
             const block = await this.chain.addBlock(new Block({address,star}));
