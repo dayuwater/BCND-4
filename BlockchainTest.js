@@ -26,6 +26,16 @@ async function test(){
 		console.log("========================");
 	}
 
+	// TODO: Add a test for getting block by hash
+	async function getBlockByHash(){
+
+	}
+
+	// TODO: Add a test for getting block by address
+	async function getBlockByAddress(){
+
+	}
+
 	async function validateBlock(){
 		console.log("Validate block");
 		const valid = await myBlockChain.validateBlock(2)
@@ -88,6 +98,8 @@ async function test(){
 	await getABlock();
 	await validateBlock();
 	await validateChain();
+	await getBlockByHash();
+	await getBlockByAddress();
 
 	await tamperBlock();
 

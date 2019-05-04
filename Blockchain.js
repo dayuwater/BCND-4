@@ -82,6 +82,16 @@ class Blockchain{
         return JSON.parse(block);
     }
 
+    // TODO: Add a function to query block by hash
+    async getBlockByHash(hash){
+
+    }
+
+    // TODO: Add a function to query block by address, this might return multiple blocks
+    async getBlockByAddress(address){
+
+    }
+
     // Validate if Block is being tampered by Block Height
     async validateBlock(height) {
         // Add your code here
