@@ -125,6 +125,23 @@ class BlockController{
             
         })
 
+        this.app.get("/stars/:hash", async (req, res) => {
+            const hash = req.params.hash;
+            
+        })
+
+        this.app.get("/stars/:address", async (req, res) => {
+            const address = req.params.address;
+            
+        })
+
+        this.app.get("/block/:height", async (req, res) => {
+            const height = req.params.height;
+            
+        })
+
+        
+
         
 
     }
