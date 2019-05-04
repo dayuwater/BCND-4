@@ -137,7 +137,19 @@ class BlockController{
 
         this.app.get("/block/:height", async (req, res) => {
             const height = req.params.height;
-            
+            if(!height || height % 1 != 0 || height <= 0){
+                res.status(400);
+                res.json(NOT_INTEGER);
+            }
+            const block = await this.chain.getBlock(height);
+            if(block){
+                block.body.star.storyDecoded = H2A.hex2ascii(block.body.star.story);
+                res.json(block);
+            }
+            else{
+                res.status(404);
+                res.json(NOT_FOUND);
+            }
         })
 
         
