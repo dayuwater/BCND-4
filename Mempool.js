@@ -71,6 +71,15 @@ class Mempool{
         delete this.timeoutRequests[address];
     }
 
+    /** Remove an address from the valid mempool
+     * Used when user finishes adding a block to the blockchain
+     * so that they must request validation for adding another block
+     * @param {string} address 
+     */
+    removeValidRequest(address){
+        delete this.mempoolValid[address];
+    }
+
     /** Validate a request by address and signature using Bitcoin
      * 
      * @param {string} address The address to be validated

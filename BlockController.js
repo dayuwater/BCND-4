@@ -115,7 +115,11 @@ class BlockController{
             const block = await this.chain.addBlock(new Block({address,star}));
             // If added successfully
             if(block){
+                // remove the address from mempool, 
+                // so that user must request validation again for registering another star
+                this.mempool.removeValidRequest(address);
                 res.json(block);
+                
             }
             else{
                 res.status(503);
