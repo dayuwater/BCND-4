@@ -69,6 +69,8 @@ class Blockchain{
 
     /**
      * Get a block by height
+     * - Because querying data by key (block height in this case) is supported directly by LevelDB,
+     * It is unnessesary to traverse the whole DB
      * @param {*} height The height of the block
      * @returns The block object if the height is valid. null if the height is invalid.
      */
@@ -82,13 +84,39 @@ class Blockchain{
         return JSON.parse(block);
     }
 
-    // TODO: Add a function to query block by hash
+    /** Query block by hash
+     * @param {string} hash The hash requested
+     * @returns false if that block does not exist, otherwise the block data in JSON object (not in Block) with the hash
+     */
     async getBlockByHash(hash){
+        const blockData = await this.bd.getAllData().catch(err => null);
 
+        // Also check if the block with that hash is the genesis block
+        // Reject if that is not the genesis block
+        const blockWithThatHash = blockData.filter(blockRaw => {
+            const block = JSON.parse(blockRaw);
+            return block.hash === hash && block.height !== 0;
+        });
+
+        return blockWithThatHash.length === 0 ? false : JSON.parse(blockWithThatHash[0]);
     }
 
-    // TODO: Add a function to query block by address, this might return multiple blocks
-    async getBlockByAddress(address){
+     /** Query block by wallet addresses
+     * @param {string} hash The address requested
+     * @returns false if that block does not exist, otherwise the block data in JSON object (not in Block) with the hash
+     */
+    async getBlocksByAddress(address){
+        const blockDataRaw = await this.bd.getAllData().catch(err => null);
+
+        // Also check if the block with that hash is the genesis block
+        // Reject if that is not the genesis block
+        const blockData = blockDataRaw.map(blockRaw => JSON.parse(blockRaw));
+        const blocksWithThatHash = blockData.filter(block => {
+            
+            return block.body.address === address && block.height !== 0;
+        });
+
+        return blocksWithThatHash.length === 0 ? false : blocksWithThatHash;
 
     }
 

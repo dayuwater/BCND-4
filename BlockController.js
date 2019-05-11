@@ -125,13 +125,45 @@ class BlockController{
             
         })
 
-        this.app.get("/stars/:hash", async (req, res) => {
+        this.app.get("/stars/hash/:hash", async (req, res) => {
             const hash = req.params.hash;
+            if(!hash || hash.length === 0){
+                res.status(400);
+                res.json(not_valid_request("hash"));
+            }
+            const block = await this.chain.getBlockByHash(hash);
+            if(block){
+                block.body.star.storyDecoded = H2A.hex2ascii(block.body.star.story);
+                res.json(block);
+            }
+            else{
+                res.status(404);
+                res.json(NOT_FOUND);
+            }
             
         })
 
-        this.app.get("/stars/:address", async (req, res) => {
+        this.app.get("/stars/address/:address", async (req, res) => {
             const address = req.params.address;
+            if(!address || address.length === 0){
+                res.status(400);
+                res.json(not_valid_request("address"));
+            }
+            const blocks = await this.chain.getBlocksByAddress(address);
+            if(blocks){
+                let processedBlocks = [];
+                for(let i=0; i<blocks.length; i++){
+                    let block = blocks[i];
+                    block.body.star.storyDecoded = H2A.hex2ascii(block.body.star.story);
+                    processedBlocks.push(block);
+                }
+                
+                res.json(processedBlocks);
+            }
+            else{
+                res.status(404);
+                res.json(NOT_FOUND);
+            }
             
         })
 

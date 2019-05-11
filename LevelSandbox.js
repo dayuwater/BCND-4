@@ -74,6 +74,29 @@ class LevelSandbox {
             });
         });
     }
+
+
+    /** Method that traverses the whole db and returns all data
+     * - This method uses ES6 Promises, not ES8 async/await syntax
+     * - This method also includes the genesis block
+     * - Please check for resolve/reject (then/catch) rather than using try/catch block
+     */
+    getAllData(){
+        const self = this;
+        let chainData = [];
+
+        return new Promise((resolve, reject) => {
+            self.db.createValueStream().on('data', (data) => {
+                chainData.push(data);
+            }).on('error', err => {
+                console.log('Unable to read data stream!', err);
+                reject(err);
+            }).on('close', () => {
+                resolve(chainData);
+            });
+        });
+       
+    }
         
 
 }

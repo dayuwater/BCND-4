@@ -28,11 +28,52 @@ async function test(){
 
 	// TODO: Add a test for getting block by hash
 	async function getBlockByHash(){
+		console.log("Function to get a block by hash");
+		console.log("Getting the block with height 1");
+		const block = await myBlockChain.getBlock(1)
+		.catch((err) => { console.log(err); return null; });
 
+		if(block){
+			console.log(block);
+			console.log("Now getting that block again by using the hash");
+			const blockHash = block.hash;
+			console.log("The block hash is " + blockHash);
+			const blockData = await myBlockChain.getBlockByHash(blockHash);
+			console.log(blockData);
+
+			console.log("Now try to get a block using an invalid hash");
+			const nonExist = await myBlockChain.getBlockByHash("test");
+			console.log(nonExist);
+		}
+		else{
+			console.log("Block 1 does not exist");
+		}
+		console.log("=========================")
 	}
 
 	// TODO: Add a test for getting block by address
 	async function getBlockByAddress(){
+		console.log("Function to get a block by address");
+		console.log("Getting the blocks with the address same as height 1");
+		const block = await myBlockChain.getBlock(1)
+		.catch((err) => { console.log(err); return null; });
+
+		if(block){
+			console.log(block);
+			console.log("Now getting that block again by using the address");
+			const blockAddress = block.body.address;
+			console.log("The block address is " + blockAddress);
+			const blockData = await myBlockChain.getBlocksByAddress(blockAddress);
+			console.log(blockData);
+
+			console.log("Now try to get a block using an invalid address");
+			const nonExist = await myBlockChain.getBlocksByAddress("address");
+			console.log(nonExist);
+		}
+		else{
+			console.log("Block 1 does not exist");
+		}
+		console.log("=========================")
 
 	}
 
@@ -96,10 +137,11 @@ async function test(){
 	
 	await getTheHeightOfChain();
 	await getABlock();
-	await validateBlock();
-	await validateChain();
 	await getBlockByHash();
 	await getBlockByAddress();
+	await validateBlock();
+	await validateChain();
+	
 
 	await tamperBlock();
 
